@@ -150,6 +150,131 @@
   .dimensao-label span:last-child { color: var(--verde); font-weight: 700; }
   .dim-barra-wrap { background: var(--cinza-borda); border-radius: 100px; height: 6px; }
   .dim-barra { height: 100%; border-radius: 100px; background: var(--verde); transition: width 0.8s ease; }
+
+  /* Abas principais */
+  .abas-nav {
+    display: flex;
+    gap: 0;
+    background: white;
+    border-bottom: 2px solid var(--cinza-borda);
+    margin-bottom: 28px;
+    border-radius: 0;
+    overflow-x: auto;
+  }
+  .aba-btn {
+    padding: 14px 28px;
+    border: none;
+    background: transparent;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--texto-suave);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .aba-btn:hover { color: var(--verde); }
+  .aba-btn.ativa { color: var(--verde); border-bottom-color: var(--verde); }
+  .aba-conteudo { display: none; }
+  .aba-conteudo.ativa { display: block; }
+
+  /* Campo nome do relatório */
+  .nome-relatorio-box {
+    background: white;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 12px;
+    padding: 18px 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--sombra);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .nome-relatorio-box label { font-size: 0.85rem; font-weight: 700; white-space: nowrap; color: var(--texto); }
+  .nome-relatorio-box input {
+    flex: 1;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 0.9rem;
+    outline: none;
+    font-family: inherit;
+    color: var(--texto);
+  }
+  .nome-relatorio-box input:focus { border-color: var(--verde-medio); }
+
+  /* Calendário */
+  .cal-wrap { background: white; border: 1px solid var(--cinza-borda); border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: var(--sombra); }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .cal-titulo { font-size: 1rem; font-weight: 700; }
+  .cal-nav { display: flex; gap: 8px; }
+  .cal-nav button { background: var(--cinza); border: 1px solid var(--cinza-borda); border-radius: 6px; padding: 5px 12px; font-size: 0.82rem; cursor: pointer; font-weight: 600; color: var(--texto); }
+  .cal-nav button:hover { background: var(--verde-claro); color: var(--verde); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dia-nome { text-align: center; font-size: 0.72rem; font-weight: 700; color: var(--texto-suave); padding: 4px 0; text-transform: uppercase; }
+  .cal-dia {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    cursor: default;
+    position: relative;
+    color: var(--texto-suave);
+  }
+  .cal-dia.tem-relatorio {
+    background: var(--verde-claro);
+    color: var(--verde);
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid rgba(26,122,74,0.2);
+  }
+  .cal-dia.tem-relatorio:hover { background: var(--verde); color: white; }
+  .cal-dia.hoje { border: 2px solid var(--verde-medio); color: var(--verde); font-weight: 700; }
+  .cal-dia.vazio { opacity: 0; pointer-events: none; }
+  .cal-dot { position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: var(--verde); }
+
+  /* Lista de relatórios salvos */
+  .rel-item {
+    background: white;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    box-shadow: var(--sombra);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .rel-item-score {
+    min-width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    background: var(--verde-claro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--verde);
+    flex-shrink: 0;
+  }
+  .rel-item-info { flex: 1; min-width: 0; }
+  .rel-item-nome { font-weight: 700; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rel-item-meta { font-size: 0.78rem; color: var(--texto-suave); margin-top: 3px; }
+  .rel-item-class { font-size: 0.75rem; font-weight: 700; color: var(--verde); background: var(--verde-claro); padding: 2px 8px; border-radius: 100px; }
+  .rel-item-acoes { display: flex; gap: 8px; flex-shrink: 0; }
+  .btn-mini { padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid var(--cinza-borda); background: white; color: var(--texto); transition: all 0.15s; }
+  .btn-mini:hover { background: var(--cinza); }
+  .btn-mini.verde { border-color: var(--verde); color: var(--verde); }
+  .btn-mini.verde:hover { background: var(--verde); color: white; }
+  .btn-mini.vermelho { border-color: var(--alto); color: var(--alto); }
+  .btn-mini.vermelho:hover { background: var(--alto); color: white; }
+
+  .vazio-historico { text-align: center; padding: 48px 20px; color: var(--texto-suave); font-size: 0.9rem; }
+  .vazio-historico .icon { font-size: 2.5rem; margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -162,9 +287,24 @@
   </div>
 </header>
 
+<!-- Navegação de abas -->
+<div class="abas-nav">
+  <button class="aba-btn ativa" onclick="trocarAba('analise', this)">🔍 Nova análise</button>
+  <button class="aba-btn" onclick="trocarAba('historico', this)">📋 Relatórios — Maria</button>
+</div>
+
 <div class="container">
 
+<!-- ════════════════════════════════════════ ABA ANÁLISE ════ -->
+<div class="aba-conteudo ativa" id="aba-analise">
+
   <div class="badge-gratuito">✓ Análise local — gratuita, sem API, sem envio de dados</div>
+
+  <!-- Campo: nome do relatório -->
+  <div class="nome-relatorio-box">
+    <label>📁 Nome do relatório</label>
+    <input type="text" id="nomeRelatorio" placeholder="Ex: Relatório Semestral — Parceiro X — jun/2025" />
+  </div>
 
   <!-- Indicador de etapas -->
   <div class="steps" id="indicadorEtapas">
@@ -284,13 +424,44 @@
       <div id="listaPontos"></div>
 
       <div class="acoes-finais">
-        <button class="btn-exportar" onclick="exportarTxt()">⬇ Exportar .txt</button>
+        <button class="btn-exportar" onclick="exportarTxt()">⬇ Baixar .txt</button>
+        <button class="btn-exportar" style="margin-left:10px" onclick="salvarRelatorio()">💾 Salvar no histórico</button>
         <button class="btn-nova" onclick="novaAnalise()">↩ Nova análise</button>
       </div>
     </div>
   </div>
 
-</div>
+</div><!-- fim aba-analise -->
+
+<!-- ════════════════════════════════════════ ABA HISTÓRICO ════ -->
+<div class="aba-conteudo" id="aba-historico">
+
+  <!-- Calendário -->
+  <div class="cal-wrap">
+    <div class="cal-header">
+      <span class="cal-titulo" id="calTitulo"></span>
+      <div class="cal-nav">
+        <button onclick="mudarMes(-1)">◀ Anterior</button>
+        <button onclick="mudarMes(1)">Próximo ▶</button>
+      </div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <!-- Filtro de dia selecionado -->
+  <div id="filtroDia" style="display:none; margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:0.85rem;font-weight:700;color:var(--verde)" id="filtroDiaLabel"></span>
+      <button class="btn-mini" onclick="limparFiltroDia()">✕ Ver todos</button>
+    </div>
+  </div>
+
+  <!-- Lista de relatórios -->
+  <div id="listaHistorico"></div>
+
+</div><!-- fim aba-historico -->
+
+</div><!-- fim container -->
 
 <script>
 // ─────────────────────────────────────────────────────────
@@ -963,7 +1134,221 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('textoRelatorio').addEventListener('input', e => { estado.relatorio = e.target.value; });
   document.getElementById('textoGrant').addEventListener('input', e => { estado.grant = e.target.value; });
   document.getElementById('textoProposta').addEventListener('input', e => { estado.proposta = e.target.value; });
+  renderizarCalendario();
+  renderizarHistorico();
 });
+
+// ─────────────────────────────────────────────────────────
+// ABAS
+// ─────────────────────────────────────────────────────────
+function trocarAba(id, btn) {
+  document.querySelectorAll('.aba-conteudo').forEach(el => el.classList.remove('ativa'));
+  document.querySelectorAll('.aba-btn').forEach(el => el.classList.remove('ativa'));
+  document.getElementById('aba-' + id).classList.add('ativa');
+  btn.classList.add('ativa');
+  if (id === 'historico') { renderizarCalendario(); renderizarHistorico(); }
+}
+
+// ─────────────────────────────────────────────────────────
+// SALVAR / CARREGAR HISTÓRICO (localStorage)
+// ─────────────────────────────────────────────────────────
+function carregarHistorico() {
+  try { return JSON.parse(localStorage.getItem('ics_historico') || '[]'); }
+  catch { return []; }
+}
+
+function salvarHistorico(lista) {
+  localStorage.setItem('ics_historico', JSON.stringify(lista));
+}
+
+function salvarRelatorio() {
+  if (!resultadoAtual) {
+    alert('Faça uma análise primeiro antes de salvar.');
+    return;
+  }
+  const nome = document.getElementById('nomeRelatorio').value.trim() || 'Relatório sem nome';
+  const agora = new Date();
+  const registro = {
+    id: Date.now(),
+    nome,
+    data: agora.toISOString(),
+    dataFormatada: agora.toLocaleDateString('pt-BR'),
+    hora: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    score: resultadoAtual.score,
+    classificacao: resultadoAtual.classificacao,
+    recomendacao: resultadoAtual.recomendacao,
+    dimensoes: resultadoAtual.dimensoes,
+    pontos: resultadoAtual.pontos,
+  };
+  const lista = carregarHistorico();
+  lista.unshift(registro);
+  salvarHistorico(lista);
+  alert(`✓ Relatório "${nome}" salvo no histórico!`);
+}
+
+function excluirRelatorio(id) {
+  if (!confirm('Excluir este relatório do histórico?')) return;
+  const lista = carregarHistorico().filter(r => r.id !== id);
+  salvarHistorico(lista);
+  renderizarCalendario();
+  renderizarHistorico();
+}
+
+function baixarRelatorioSalvo(id) {
+  const lista = carregarHistorico();
+  const r = lista.find(x => x.id === id);
+  if (!r) return;
+  let txt = `REVISÃO DE RELATÓRIO — Instituto Clima e Sociedade (iCS)\n`;
+  txt += `Relatório: ${r.nome}\nData: ${r.dataFormatada} às ${r.hora}\n${'='.repeat(60)}\n\n`;
+  txt += `SCORE: ${r.score}/100 — ${r.classificacao}\n\n`;
+  txt += `${'─'.repeat(60)}\nPONTUAÇÃO POR DIMENSÃO\n${'─'.repeat(60)}\n`;
+  for (const [d, v] of Object.entries(r.dimensoes || {})) txt += `${d}: ${v}/100\n`;
+  txt += `\n${'─'.repeat(60)}\nRECOMENDAÇÃO ESTRATÉGICA\n${'─'.repeat(60)}\n${r.recomendacao}\n\n`;
+  txt += `${'─'.repeat(60)}\nPONTOS DE MELHORIA\n${'─'.repeat(60)}\n`;
+  ['alto','medio','baixo'].forEach(prio => {
+    const pts = (r.pontos || []).filter(p => p.prioridade === prio);
+    if (!pts.length) return;
+    const labels = { alto:'🔴 ALTA', medio:'🟡 MÉDIA', baixo:'🟢 BAIXA' };
+    txt += `\n${labels[prio]} PRIORIDADE\n${'─'.repeat(30)}\n`;
+    pts.forEach((p, i) => {
+      txt += `\n${i+1}. [${p.capitulo}]\n`;
+      if (p.paragrafo) txt += `Trecho: "${p.paragrafo}"\n`;
+      txt += `Ponto de atenção: ${p.descricao}\n`;
+      txt += `Sugestão: ${p.sugestao}\n`;
+    });
+  });
+  txt += `\n${'='.repeat(60)}\nRevisor de Relatórios iCS — análise local\n`;
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const nomeArq = r.nome.replace(/[^a-zA-Z0-9\s\-]/g, '').replace(/\s+/g, '-').slice(0, 50);
+  a.download = `${nomeArq}-${r.data.slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─────────────────────────────────────────────────────────
+// CALENDÁRIO
+// ─────────────────────────────────────────────────────────
+let calAno, calMes, filtroDiaSelecionado = null;
+
+function iniciarCal() {
+  const agora = new Date();
+  calAno = agora.getFullYear();
+  calMes = agora.getMonth();
+}
+
+function mudarMes(delta) {
+  calMes += delta;
+  if (calMes < 0) { calMes = 11; calAno--; }
+  if (calMes > 11) { calMes = 0; calAno++; }
+  filtroDiaSelecionado = null;
+  document.getElementById('filtroDia').style.display = 'none';
+  renderizarCalendario();
+  renderizarHistorico();
+}
+
+function renderizarCalendario() {
+  if (calAno === undefined) iniciarCal();
+  const historico = carregarHistorico();
+  const agora = new Date();
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('calTitulo').textContent = `${meses[calMes]} ${calAno}`;
+
+  // Dias com relatório
+  const diasComRel = new Set(
+    historico
+      .filter(r => { const d = new Date(r.data); return d.getFullYear() === calAno && d.getMonth() === calMes; })
+      .map(r => new Date(r.data).getDate())
+  );
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-dia-nome';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const primeiroDia = new Date(calAno, calMes, 1).getDay();
+  const totalDias = new Date(calAno, calMes + 1, 0).getDate();
+
+  for (let i = 0; i < primeiroDia; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-dia vazio';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= totalDias; d++) {
+    const el = document.createElement('div');
+    const eHoje = d === agora.getDate() && calMes === agora.getMonth() && calAno === agora.getFullYear();
+    const temRel = diasComRel.has(d);
+    el.className = 'cal-dia' + (temRel ? ' tem-relatorio' : '') + (eHoje ? ' hoje' : '');
+    el.textContent = d;
+    if (temRel) {
+      const dot = document.createElement('div');
+      dot.className = 'cal-dot';
+      el.appendChild(dot);
+      el.onclick = () => filtrarPorDia(d);
+    }
+    grid.appendChild(el);
+  }
+}
+
+function filtrarPorDia(dia) {
+  filtroDiaSelecionado = dia;
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  document.getElementById('filtroDia').style.display = 'flex';
+  document.getElementById('filtroDiaLabel').textContent = `📅 Mostrando: ${dia} de ${meses[calMes]}/${calAno}`;
+  renderizarHistorico();
+}
+
+function limparFiltroDia() {
+  filtroDiaSelecionado = null;
+  document.getElementById('filtroDia').style.display = 'none';
+  renderizarHistorico();
+}
+
+// ─────────────────────────────────────────────────────────
+// LISTA DE HISTÓRICO
+// ─────────────────────────────────────────────────────────
+function renderizarHistorico() {
+  const lista = carregarHistorico();
+  const container = document.getElementById('listaHistorico');
+  if (!container) return;
+
+  let filtrada = lista.filter(r => {
+    const d = new Date(r.data);
+    if (d.getFullYear() !== calAno || d.getMonth() !== calMes) return false;
+    if (filtroDiaSelecionado !== null && d.getDate() !== filtroDiaSelecionado) return false;
+    return true;
+  });
+
+  if (!filtrada.length) {
+    container.innerHTML = `<div class="vazio-historico"><div class="icon">📂</div><div>${filtroDiaSelecionado ? 'Nenhum relatório analisado neste dia.' : 'Nenhum relatório analisado neste mês.'}</div><div style="font-size:0.8rem;margin-top:6px;color:#aaa">Os relatórios salvos aparecem aqui organizados por data.</div></div>`;
+    return;
+  }
+
+  container.innerHTML = filtrada.map(r => `
+    <div class="rel-item">
+      <div class="rel-item-score">${r.score}</div>
+      <div class="rel-item-info">
+        <div class="rel-item-nome" title="${escapeHtml(r.nome)}">${escapeHtml(r.nome)}</div>
+        <div class="rel-item-meta">
+          📅 ${r.dataFormatada} às ${r.hora}
+          &nbsp;·&nbsp; <span class="rel-item-class">${escapeHtml(r.classificacao)}</span>
+          &nbsp;·&nbsp; ${(r.pontos||[]).filter(p=>p.prioridade==='alto').length} pontos críticos
+        </div>
+      </div>
+      <div class="rel-item-acoes">
+        <button class="btn-mini verde" onclick="baixarRelatorioSalvo(${r.id})">⬇ Baixar</button>
+        <button class="btn-mini vermelho" onclick="excluirRelatorio(${r.id})">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
 </script>
 </body>
 </html>
