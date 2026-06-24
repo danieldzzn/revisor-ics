@@ -643,7 +643,65 @@ function textoContemTermo(texto, termo) {
 }
 
 function dividirEmParagrafos(texto) {
-  return texto.split(/\n{2,}|\r\n{2,}/).filter(p => p.trim().length > 50);
+  return texto.split(/\n{2,}|\r\n{2,}|\n/).filter(p => p.trim().length > 50);
+}
+
+// Extrai a frase exata do parágrafo que contém um dos termos
+function extrairFraseComTermo(paragrafo, termos) {
+  const frases = paragrafo.split(/[.!?]+/).map(f => f.trim()).filter(f => f.length > 20);
+  for (const frase of frases) {
+    for (const t of termos) {
+      if (normalizar(frase).includes(normalizar(t))) return frase;
+    }
+  }
+  return null;
+}
+
+// Encontra parágrafos que SÓ falam de atividades (sem resultado)
+function paragrafosApenasAtividades(paragrafos) {
+  const verbosAtiv = ['realizamos','realizou','fizemos','fez','executamos','executou',
+    'desenvolvemos','desenvolveu','organizamos','organizou','promovemos','promoveu',
+    'participamos','participou','assistimos','assistiu','elaboramos','elaborou',
+    'produzimos','produziu','levantamos','levantou','visitamos','visitou'];
+  const verbosResultado = ['resultou','gerou','alcançou','alcancou','contribuiu',
+    'impactou','transformou','influenciou','mobilizou','fortaleceu','ampliou',
+    'reduziu','viabilizou','promoveu mudança','alavancou','incidiu'];
+  return paragrafos.filter(p => {
+    const pN = normalizar(p);
+    const temAtiv = verbosAtiv.some(v => pN.includes(v));
+    const temResult = verbosResultado.some(v => pN.includes(v));
+    return temAtiv && !temResult;
+  });
+}
+
+// Encontra parágrafos sem nenhum número
+function paragrafosSemDados(paragrafos) {
+  return paragrafos.filter(p => !/\d+/.test(p));
+}
+
+// Detecta jargão vago sem substância
+function detectarVagueza(paragrafos) {
+  const termos = ['de alguma forma','de certa forma','em algum momento','buscamos','tentamos',
+    'esperamos','pretendemos','seria interessante','pode contribuir','pode ajudar',
+    'poderá','possível','talvez','eventualmente','em breve','futuramente',
+    'ao longo do período','durante o período','no decorrer'];
+  return paragrafos.filter(p => termos.some(t => normalizar(p).includes(normalizar(t))));
+}
+
+// Detecta promessas não cumpridas (verbos no futuro em relatório de prestação de contas)
+function detectarFuturoEmRelatorio(paragrafos) {
+  const futuro = ['iremos','vamos realizar','vamos desenvolver','será realizado',
+    'será desenvolvido','será feito','faremos','implementaremos','buscaremos',
+    'desenvolveremos','realizaremos','promoveremos'];
+  return paragrafos.filter(p => futuro.some(t => normalizar(p).includes(normalizar(t))));
+}
+
+// Detecta ausência de sujeito (frases passivas sem agente)
+function detectarPassivasSemAgente(paragrafos) {
+  const passivas = ['foi realizado','foi desenvolvido','foi feito','foram realizados',
+    'foram desenvolvidos','foi elaborado','foram elaborados','foi promovido',
+    'foram promovidos','foi implementado','foram implementados'];
+  return paragrafos.filter(p => passivas.some(t => normalizar(p).includes(normalizar(t))));
 }
 
 function extrairSecoes(texto) {
@@ -673,7 +731,7 @@ function encontrarParagrafo(paragrafos, termos) {
     if (score > melhorScore) { melhorScore = score; melhor = p; }
   }
   if (!melhor && paragrafos.length > 0) melhor = paragrafos[0];
-  return melhor ? melhor.trim().slice(0, 280) + (melhor.length > 280 ? '…' : '') : null;
+  return melhor ? melhor.trim().slice(0, 400) + (melhor.length > 400 ? '…' : '') : null;
 }
 
 function analisarRelatorio(relatorio, grant, proposta, prioridades) {
@@ -682,6 +740,13 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
   const paragrafos = dividirEmParagrafos(rel);
   const temGrant = grant && grant.trim().length > 100;
   const temProposta = proposta && proposta.trim().length > 100;
+
+  // Análises detalhadas parágrafo a parágrafo
+  const parafAtiv = paragrafosApenasAtividades(paragrafos);
+  const parafSemDados = paragrafosSemDados(paragrafos);
+  const parafVagos = detectarVagueza(paragrafos);
+  const parafFuturo = detectarFuturoEmRelatorio(paragrafos);
+  const parafPassivas = detectarPassivasSemAgente(paragrafos);
 
   const pontos = [];
   const dimensoes = {};
@@ -934,6 +999,122 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
         sugestao: `Este ponto não é crítico mas contribui para a qualidade geral do relatório. Considere incluir na devolutiva ao parceiro como sugestão de melhoria para próximos relatórios.`
       });
     }
+  }
+
+  // ── ANÁLISE DETALHADA PARÁGRAFO A PARÁGRAFO ──
+
+  // 1. Parágrafos que descrevem apenas atividades sem resultado
+  if (parafAtiv.length > 0) {
+    parafAtiv.slice(0, 3).forEach((p, i) => {
+      pontos.push({
+        prioridade: 'alto', tipoAjuste: 'Reescrever — conectar atividade ao resultado',
+        capitulo: `Bloco de atividade sem resultado (ocorrência ${i+1} de ${parafAtiv.length})`,
+        paragrafo: p.trim().slice(0, 400) + (p.length > 400 ? '…' : ''),
+        descricao: `Este bloco descreve o que foi feito, mas não conecta a ação a nenhum resultado, mudança ou impacto. O iCS precisa saber não apenas o que aconteceu, mas o que isso gerou.`,
+        sugestao: `Imediatamente após a descrição da atividade, acrescente: "→ Isso resultou em [mudança concreta] para [quem/onde], contribuindo para [objetivo estratégico]." Se o resultado ainda não é mensurável, descreva o resultado intermediário (ex: "ampliou a capacidade de X atores para Y").`
+      });
+    });
+  }
+
+  // 2. Parágrafos com linguagem vaga e imprecisa
+  if (parafVagos.length > 0) {
+    parafVagos.slice(0, 2).forEach((p, i) => {
+      const frase = extrairFraseComTermo(p, ['de alguma forma','buscamos','tentamos','esperamos','seria interessante','pode contribuir','talvez','eventualmente','futuramente','ao longo do período']) || p.trim().slice(0, 200);
+      pontos.push({
+        prioridade: 'alto', tipoAjuste: 'Substituir linguagem vaga por afirmação concreta',
+        capitulo: `Linguagem imprecisa — vagueza identificada (ocorrência ${i+1})`,
+        paragrafo: p.trim().slice(0, 400) + (p.length > 400 ? '…' : ''),
+        descricao: `O bloco acima usa linguagem vaga e imprecisa — termos como "buscamos", "tentamos", "de alguma forma", "eventualmente" enfraquecem a credibilidade do relatório e impedem a verificação do impacto. Frase problemática detectada: "${frase}".`,
+        sugestao: `Substitua a linguagem de intenção por afirmação de fato. Em vez de "buscamos contribuir para X" → "contribuímos para X por meio de Y, com resultado Z". Cada afirmação deve ser verificável: quem fez, o quê, quando, com qual efeito.`
+      });
+    });
+  }
+
+  // 3. Parágrafos com verbos no futuro (inadequados em prestação de contas)
+  if (parafFuturo.length > 0) {
+    parafFuturo.slice(0, 2).forEach((p, i) => {
+      pontos.push({
+        prioridade: 'medio', tipoAjuste: 'Corrigir tempo verbal — futuro em relatório de execução',
+        capitulo: `Verbos no futuro em contexto de prestação de contas (ocorrência ${i+1})`,
+        paragrafo: p.trim().slice(0, 400) + (p.length > 400 ? '…' : ''),
+        descricao: `Este bloco usa verbos no futuro ("iremos", "vamos", "será realizado") em um relatório que deveria estar narrando o que já foi executado. Isso gera confusão entre o que foi feito e o que ainda está por vir.`,
+        sugestao: `Separe claramente dois blocos: (1) "O que foi realizado neste período" — verbos no passado; (2) "Próximos passos" — verbos no futuro, em seção dedicada ao final. Revise este parágrafo e mova o conteúdo para a seção correta.`
+      });
+    });
+  }
+
+  // 4. Parágrafos com voz passiva sem agente identificado
+  if (parafPassivas.length > 0) {
+    parafPassivas.slice(0, 2).forEach((p, i) => {
+      pontos.push({
+        prioridade: 'medio', tipoAjuste: 'Identificar agente — substituir passiva sem sujeito',
+        capitulo: `Voz passiva sem agente identificado (ocorrência ${i+1})`,
+        paragrafo: p.trim().slice(0, 400) + (p.length > 400 ? '…' : ''),
+        descricao: `Este bloco usa construções passivas sem identificar quem realizou a ação ("foi realizado", "foram desenvolvidos"). Isso obscurece a responsabilidade e o protagonismo do projeto, enfraquecendo a narrativa de impacto.`,
+        sugestao: `Reescreva usando voz ativa com sujeito explícito: em vez de "foi realizado um evento" → "[Nome da organização] realizou [evento] com [X participantes], gerando [resultado]". O iCS quer saber quem fez, não apenas que algo foi feito.`
+      });
+    });
+  }
+
+  // 5. Parágrafos de resultado sem nenhum dado numérico
+  const parafResultadoSemNum = paragrafos.filter(p => {
+    const pN = normalizar(p);
+    const temResult = ['resultado','impacto','alcançou','alcancou','contribuiu','gerou','fortaleceu'].some(v => pN.includes(v));
+    const temNum = /\d+/.test(p);
+    return temResult && !temNum;
+  });
+
+  if (parafResultadoSemNum.length > 0) {
+    parafResultadoSemNum.slice(0, 2).forEach((p, i) => {
+      pontos.push({
+        prioridade: 'alto', tipoAjuste: 'Quantificar resultado — inserir dados mensuráveis',
+        capitulo: `Resultado narrado sem evidência quantitativa (ocorrência ${i+1} de ${parafResultadoSemNum.length})`,
+        paragrafo: p.trim().slice(0, 400) + (p.length > 400 ? '…' : ''),
+        descricao: `Este bloco afirma um resultado mas não apresenta nenhum dado que o comprove. Afirmações de impacto sem números são inverificáveis e reduzem a credibilidade do relatório perante o iCS.`,
+        sugestao: `Acrescente ao menos um dado concreto: número de pessoas, organizações, municípios, eventos, publicações, percentuais de variação, ou referência a uma fonte de verificação (pesquisa, lista de presença, documento público). Formato ideal: "[Resultado] — [número] [unidade] — fonte: [como verificar]".`
+      });
+    });
+  }
+
+  // 6. Verificar se há seção de contexto/cenário externo
+  const temContexto = textoContemTermo(rel, 'contexto') || textoContemTermo(rel, 'cenário') ||
+    textoContemTermo(rel, 'cenario') || textoContemTermo(rel, 'conjuntura') ||
+    textoContemTermo(rel, 'situação') || textoContemTermo(rel, 'situacao');
+  if (!temContexto) {
+    pontos.push({
+      prioridade: 'medio', tipoAjuste: 'Inserir análise de contexto externo',
+      capitulo: 'Contexto e cenário do período',
+      paragrafo: paragrafos[0] ? paragrafos[0].trim().slice(0, 400) : null,
+      descricao: `O relatório não apresenta análise do contexto externo no período relatado. O iCS espera que o parceiro demonstre consciência do cenário político, climático ou social em que o projeto está inserido — e como esse cenário influenciou a execução.`,
+      sugestao: `Acrescente um parágrafo de contexto logo na introdução: "No período de [X a Y], o cenário [político/climático/setorial] foi marcado por [fato relevante], o que [impactou / criou oportunidade para] o projeto da seguinte forma: [explicação]. Essa consciência de contexto mostra maturidade estratégica e situa o trabalho na realidade.`
+    });
+  }
+
+  // 7. Verificar teoria da mudança / lógica de intervenção
+  const temTeoriaMudanca = textoContemTermo(rel, 'teoria da mudança') || textoContemTermo(rel, 'teoria de mudança') ||
+    textoContemTermo(rel, 'lógica de intervenção') || textoContemTermo(rel, 'logica de intervencao') ||
+    textoContemTermo(rel, 'cadeia de resultados') || textoContemTermo(rel, 'mudança sistêmica') ||
+    textoContemTermo(rel, 'mudanca sistemica');
+  if (!temTeoriaMudanca) {
+    pontos.push({
+      prioridade: 'medio', tipoAjuste: 'Explicitar lógica de mudança do projeto',
+      capitulo: 'Teoria da mudança — conexão entre ações e impacto',
+      paragrafo: encontrarParagrafo(paragrafos, ['resultado','impacto','mudança','objetivo']),
+      descricao: `O relatório não explicita a lógica de mudança do projeto — como as atividades levam aos resultados e estes aos impactos sistêmicos. O iCS avalia se o parceiro compreende o encadeamento causal do seu próprio trabalho.`,
+      sugestao: `Inclua uma frase ou parágrafo que conecte explicitamente as ações ao impacto esperado: "Acreditamos que [ação X] leva a [resultado Y] porque [razão], o que contribui para [mudança sistêmica Z] no eixo [temático do iCS]." Isso demonstra clareza estratégica sobre o papel do projeto no ecossistema maior.`
+    });
+  }
+
+  // 8. Verificar menção a públicos beneficiários com especificidade
+  const temPublico = /\d+\s*(pessoa|mulher|homem|jovem|agricultor|comunidade|família|familia|liderança|lideranca|organização|organizacao|município|municipio)/.test(rel);
+  if (!temPublico) {
+    pontos.push({
+      prioridade: 'alto', tipoAjuste: 'Especificar públicos com dados quantitativos',
+      capitulo: 'Públicos beneficiários — identificação e quantificação',
+      paragrafo: encontrarParagrafo(paragrafos, ['pessoas','comunidade','beneficiário','público','ator','stakeholder']),
+      descricao: `O relatório não identifica com precisão quantos e quais pessoas ou organizações foram diretamente alcançadas. Sem essa informação, é impossível avaliar a escala e a relevância do trabalho realizado.`,
+      sugestao: `Para cada resultado, especifique: (1) quem foi alcançado (perfil: agricultores, lideranças, gestores públicos etc.), (2) quantos (número exato ou estimativa fundamentada), (3) onde (estado, município, território), (4) como foram impactados. Exemplo: "Alcançamos 47 agricultores familiares em 3 municípios do Pará, dos quais 28 adotaram práticas de manejo sustentável documentadas."`
+    });
   }
 
   // ── CALCULAR SCORE FINAL ──
