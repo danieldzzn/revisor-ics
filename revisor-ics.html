@@ -4,7 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Revisor de Relatórios — iCS</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+<script>
+// Carregar mammoth.js dinamicamente com fallback
+(function() {
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js';
+  s.onerror = function() { window._mammothFailed = true; };
+  document.head.appendChild(s);
+})();
+</script>
 <style>
   :root {
     --verde: #1a7a4a;
@@ -280,7 +288,7 @@ const ESTRATEGIA_ICS = {
     "influenciou","mobilizou","sensibilizou","engajou","articulou","incidiu","alavancou",
     "fortaleceu","ampliou","reduziu","mitigou","viabilizou","promoveu mudança","promoveu mudanca",
   ],
-  linguagemApenas Atividades: [
+  linguagemApenasAtividades: [
     "realizamos","fizemos","executamos","desenvolvemos atividade","organizamos evento",
     "promovemos reunião","promovemos reuniao","elaboramos documento","produzimos material",
     "participamos de","assistimos","fizemos visita","fizemos levantamento",
@@ -337,12 +345,28 @@ function processarArquivo(tipo, file) {
   };
 
   if (ext === 'docx' || ext === 'doc') {
+    if (typeof mammoth === 'undefined') {
+      zoneEl.querySelector('.label').innerHTML = '<strong style="color:var(--medio)">Word não suportado offline — cole o texto abaixo</strong>';
+      return;
+    }
     const r = new FileReader();
     r.onload = async (ev) => {
-      try { const res = await mammoth.extractRawText({ arrayBuffer: ev.target.result }); concluir(res.value); }
-      catch { zoneEl.querySelector('.label').innerHTML = '<strong style="color:var(--alto)">Erro ao ler arquivo</strong>'; }
+      try {
+        const res = await mammoth.extractRawText({ arrayBuffer: ev.target.result });
+        if (res.value && res.value.trim().length > 10) {
+          concluir(res.value);
+        } else {
+          zoneEl.querySelector('.label').innerHTML = '<strong style="color:var(--medio)">Arquivo vazio ou protegido — cole o texto abaixo</strong>';
+        }
+      } catch(err) {
+        zoneEl.querySelector('.label').innerHTML = '<strong style="color:var(--alto)">Erro ao ler Word — cole o texto abaixo</strong>';
+      }
     };
+    r.onerror = () => { zoneEl.querySelector('.label').innerHTML = '<strong style="color:var(--alto)">Erro ao ler arquivo</strong>'; };
     r.readAsArrayBuffer(file);
+  } else if (ext === 'pdf') {
+    zoneEl.querySelector('.label').innerHTML = '<strong style="color:var(--medio)">PDF não suportado — abra no Word ou Acrobat, copie o texto e cole abaixo</strong>';
+    return;
   } else {
     const r = new FileReader();
     r.onload = (ev) => concluir(ev.target.result);
