@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revisor de Relatórios — iCS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+<style>
+  :root {
+    --verde: #1a7a4a;
+    --verde-claro: #e8f5ee;
+    --verde-medio: #2d9d62;
+    --cinza: #f4f5f7;
+    --cinza-borda: #dde1e7;
+    --texto: #1a1a2e;
+    --texto-suave: #5a6472;
+    --alto: #c0392b;
+    --medio: #e67e22;
+    --baixo: #27ae60;
+    --alto-bg: #fdf0ee;
+    --medio-bg: #fef9e7;
+    --baixo-bg: #eafaf1;
+    --sombra: 0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--cinza);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--verde);
+    color: white;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  header .logo-box {
+    width: 44px; height: 44px;
+    background: white;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900;
+    color: var(--verde);
+    font-size: 18px;
+    letter-spacing: -1px;
+  }
+
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header p { font-size: 0.8rem; opacity: 0.85; margin-top: 2px; }
+
+  .container { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
+
+  /* API Key */
+  .api-bar {
+    background: white;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    box-shadow: var(--sombra);
+  }
+
+  .api-bar label { font-size: 0.82rem; color: var(--texto-suave); white-space: nowrap; font-weight: 500; }
+
+  .api-bar input {
+    flex: 1;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 0.88rem;
+    outline: none;
+    font-family: monospace;
+    color: var(--texto);
+  }
+
+  .api-bar input:focus { border-color: var(--verde-medio); }
+
+  .btn-salvar {
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .btn-salvar:hover { background: var(--verde-medio); }
+
+  .api-status {
+    font-size: 0.78rem;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .api-status.ok { color: var(--baixo); }
+  .api-status.vazio { color: var(--texto-suave); }
+
+  /* Steps */
+  .steps {
+    display: flex;
+    gap: 0;
+    margin-bottom: 28px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--cinza-borda);
+    box-shadow: var(--sombra);
+  }
+
+  .step-item {
+    flex: 1;
+    padding: 14px 12px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--texto-suave);
+    border-right: 1px solid var(--cinza-borda);
+    transition: all 0.2s;
+  }
+
+  .step-item:last-child { border-right: none; }
+
+  .step-item.ativo {
+    background: var(--verde-claro);
+    color: var(--verde);
+    font-weight: 600;
+  }
+
+  .step-item.concluido {
+    background: var(--verde);
+    color: white;
+    font-weight: 600;
+  }
+
+  .step-num {
+    display: inline-flex;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: var(--cinza-borda);
+    color: var(--texto-suave);
+    margin-bottom: 4px;
+  }
+
+  .step-item.ativo .step-num {
+    background: var(--verde);
+    color: white;
+  }
+
+  .step-item.concluido .step-num {
+    background: white;
+    color: var(--verde);
+  }
+
+  .step-item div { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+  /* Cards */
+  .card {
+    background: white;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--sombra);
+  }
+
+  .card h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--texto);
+  }
+
+  .card .subtitulo {
+    font-size: 0.82rem;
+    color: var(--texto-suave);
+    margin-bottom: 18px;
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 2px dashed var(--cinza-borda);
+    border-radius: 8px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--cinza);
+    position: relative;
+  }
+
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--verde-medio); background: var(--verde-claro); }
+  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+  .upload-zone .icon { font-size: 2rem; margin-bottom: 8px; }
+  .upload-zone .label { font-size: 0.88rem; color: var(--texto-suave); }
+  .upload-zone .label strong { color: var(--verde); }
+  .upload-zone .formatos { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+
+  .upload-zone.carregado { border-color: var(--verde); border-style: solid; background: var(--verde-claro); }
+  .upload-zone.carregado .label { color: var(--verde); font-weight: 600; }
+
+  /* Divider */
+  .ou {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--texto-suave);
+    margin: 14px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ou::before, .ou::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--cinza-borda);
+  }
+
+  textarea {
+    width: 100%;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.85rem;
+    resize: vertical;
+    min-height: 120px;
+    outline: none;
+    font-family: inherit;
+    color: var(--texto);
+    transition: border 0.2s;
+  }
+
+  textarea:focus { border-color: var(--verde-medio); }
+
+  /* Doc secundário grid */
+  .docs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  @media (max-width: 600px) { .docs-grid { grid-template-columns: 1fr; } }
+
+  .doc-card { background: var(--cinza); border-radius: 8px; padding: 14px; }
+  .doc-card h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--texto); }
+  .doc-card .desc { font-size: 0.75rem; color: var(--texto-suave); margin-bottom: 10px; }
+
+  /* Botão principal */
+  .btn-analisar {
+    width: 100%;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-analisar:hover:not(:disabled) { background: var(--verde-medio); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,122,74,0.3); }
+  .btn-analisar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* Progresso */
+  #progresso-wrap { display: none; }
+
+  .progresso-etapas {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .etapa-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--cinza);
+    font-size: 0.88rem;
+    color: var(--texto-suave);
+    transition: all 0.3s;
+  }
+
+  .etapa-item.andando { background: var(--verde-claro); color: var(--verde); font-weight: 600; }
+  .etapa-item.feito { background: var(--verde); color: white; font-weight: 600; }
+
+  .etapa-icone { font-size: 1.1rem; width: 24px; text-align: center; }
+
+  .barra-wrap { background: var(--cinza-borda); border-radius: 100px; height: 8px; overflow: hidden; }
+  .barra { height: 100%; background: var(--verde); border-radius: 100px; transition: width 0.5s ease; }
+
+  /* Resultados */
+  #resultados-wrap { display: none; }
+
+  .score-box {
+    text-align: center;
+    padding: 28px;
+    background: var(--verde-claro);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(26,122,74,0.2);
+  }
+
+  .score-num {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: var(--verde);
+    line-height: 1;
+  }
+
+  .score-label { font-size: 0.9rem; color: var(--texto-suave); margin-top: 6px; }
+  .score-classificacao { font-size: 1.1rem; font-weight: 700; color: var(--verde); margin-top: 8px; }
+
+  .recomendacao {
+    background: white;
+    border-left: 4px solid var(--verde);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .recomendacao strong { display: block; margin-bottom: 6px; color: var(--verde); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Pontos de melhoria */
+  .ponto {
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .ponto.alto { background: var(--alto-bg); border-left: 3px solid var(--alto); }
+  .ponto.medio { background: var(--medio-bg); border-left: 3px solid var(--medio); }
+  .ponto.baixo { background: var(--baixo-bg); border-left: 3px solid var(--baixo); }
+
+  .ponto-badge {
+    padding: 3px 9px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .alto .ponto-badge { background: var(--alto); color: white; }
+  .medio .ponto-badge { background: var(--medio); color: white; }
+  .baixo .ponto-badge { background: var(--baixo); color: white; }
+
+  .ponto-texto { font-size: 0.88rem; line-height: 1.5; }
+  .ponto-capitulo { font-size: 0.75rem; color: var(--texto-suave); margin-top: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+
+  .filtros {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .filtro-btn {
+    padding: 5px 14px;
+    border-radius: 100px;
+    border: 1px solid var(--cinza-borda);
+    background: white;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+
+  .filtro-btn:hover { border-color: var(--verde); color: var(--verde); }
+  .filtro-btn.ativo { background: var(--verde); color: white; border-color: var(--verde); }
+
+  /* Exportar */
+  .btn-exportar {
+    background: white;
+    color: var(--verde);
+    border: 2px solid var(--verde);
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-exportar:hover { background: var(--verde); color: white; }
+
+  .btn-nova {
+    background: var(--cinza);
+    color: var(--texto);
+    border: 1px solid var(--cinza-borda);
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 10px;
+  }
+
+  .btn-nova:hover { background: var(--cinza-borda); }
+
+  .acoes-finais { display: flex; align-items: center; margin-top: 20px; }
+
+  /* Erro */
+  .erro-box {
+    background: var(--alto-bg);
+    border: 1px solid var(--alto);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 0.88rem;
+    color: var(--alto);
+    margin-top: 12px;
+    display: none;
+  }
+
+  h3.secao { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--texto-suave); font-weight: 700; margin: 20px 0 12px; }
+
+  .spinner {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid rgba(26,122,74,0.3);
+    border-top-color: var(--verde);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-box">iCS</div>
+  <div>
+    <h1>Revisor de Relatórios</h1>
+    <p>Instituto Clima e Sociedade — análise de alinhamento estratégico</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- API Key -->
+  <div class="api-bar">
+    <label>🔑 Chave API Anthropic</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-..." />
+    <button class="btn-salvar" onclick="salvarChave()">Salvar</button>
+    <span class="api-status" id="apiStatus">—</span>
+  </div>
+
+  <!-- Indicador de etapas -->
+  <div class="steps" id="indicadorEtapas">
+    <div class="step-item ativo" id="si1">
+      <div><span class="step-num">1</span>Relatório principal</div>
+    </div>
+    <div class="step-item" id="si2">
+      <div><span class="step-num">2</span>Documentos relacionados</div>
+    </div>
+    <div class="step-item" id="si3">
+      <div><span class="step-num">3</span>Análise Claude</div>
+    </div>
+    <div class="step-item" id="si4">
+      <div><span class="step-num">4</span>Resultados</div>
+    </div>
+  </div>
+
+  <!-- ETAPA 1: Relatório principal -->
+  <div class="card" id="etapa1">
+    <h2>Relatório principal</h2>
+    <p class="subtitulo">Carregue o relatório que será revisado. Aceita Word (.docx, .doc), PDF ou texto puro (.txt).</p>
+
+    <div class="upload-zone" id="zoneRelatorio" ondragover="dragOver(event,'zoneRelatorio')" ondragleave="dragLeave('zoneRelatorio')" ondrop="dropArquivo(event,'relatorio')">
+      <input type="file" id="fileRelatorio" accept=".docx,.doc,.pdf,.txt" onchange="carregarArquivo('relatorio', this)">
+      <div class="icon">📄</div>
+      <div class="label"><strong>Clique para selecionar</strong> ou arraste o arquivo aqui</div>
+      <div class="formatos">.docx · .doc · .txt (PDF: cole o texto abaixo)</div>
+    </div>
+
+    <div class="ou">ou cole o texto diretamente</div>
+
+    <textarea id="textoRelatorio" placeholder="Cole aqui o conteúdo do relatório..." rows="8" oninput="verificarEtapa1()"></textarea>
+
+    <div class="erro-box" id="erroEtapa1">Por favor, forneça o relatório principal (arquivo ou texto).</div>
+  </div>
+
+  <!-- ETAPA 2: Documentos relacionados -->
+  <div class="card" id="etapa2">
+    <h2>Documentos relacionados</h2>
+    <p class="subtitulo">Forneça os documentos de referência para checar coerência e alinhamento.</p>
+
+    <div class="docs-grid">
+      <!-- Grant/Contrato -->
+      <div class="doc-card">
+        <h3>📋 Grant / Contrato assinado</h3>
+        <p class="desc">Documento legal com os compromissos assumidos pelo parceiro.</p>
+        <div class="upload-zone" id="zoneGrant" style="padding:16px 12px" ondragover="dragOver(event,'zoneGrant')" ondragleave="dragLeave('zoneGrant')" ondrop="dropArquivo(event,'grant')">
+          <input type="file" id="fileGrant" accept=".docx,.doc,.pdf,.txt" onchange="carregarArquivo('grant', this)">
+          <div class="icon" style="font-size:1.4rem">📎</div>
+          <div class="label" style="font-size:0.8rem"><strong>Selecionar arquivo</strong></div>
+          <div class="formatos">.docx · .doc · .txt</div>
+        </div>
+        <div class="ou">ou cole o texto</div>
+        <textarea id="textoGrant" placeholder="Cole o conteúdo do grant/contrato..." rows="5" style="font-size:0.82rem"></textarea>
+      </div>
+
+      <!-- Proposta -->
+      <div class="doc-card">
+        <h3>📝 Proposta aprovada</h3>
+        <p class="desc">Proposta original com objetivos, metas e indicadores aprovados.</p>
+        <div class="upload-zone" id="zoneProposta" style="padding:16px 12px" ondragover="dragOver(event,'zoneProposta')" ondragleave="dragLeave('zoneProposta')" ondrop="dropArquivo(event,'proposta')">
+          <input type="file" id="fileProposta" accept=".docx,.doc,.pdf,.txt" onchange="carregarArquivo('proposta', this)">
+          <div class="icon" style="font-size:1.4rem">📎</div>
+          <div class="label" style="font-size:0.8rem"><strong>Selecionar arquivo</strong></div>
+          <div class="formatos">.docx · .doc · .txt</div>
+        </div>
+        <div class="ou">ou cole o texto</div>
+        <textarea id="textoProposta" placeholder="Cole o conteúdo da proposta aprovada..." rows="5" style="font-size:0.82rem"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botão analisar -->
+  <button class="btn-analisar" id="btnAnalisar" onclick="iniciarAnalise()">
+    🔍 Analisar relatório com Claude
+  </button>
+
+  <div class="erro-box" id="erroGeral"></div>
+
+  <!-- PROGRESSO -->
+  <div id="progresso-wrap">
+    <div class="card" style="margin-top:20px">
+      <h2 style="margin-bottom:16px">Analisando relatório…</h2>
+
+      <div class="progresso-etapas" id="listaEtapas">
+        <div class="etapa-item" id="ep1">
+          <span class="etapa-icone">📖</span>
+          <span>Lendo e estruturando os documentos</span>
+        </div>
+        <div class="etapa-item" id="ep2">
+          <span class="etapa-icone">🔗</span>
+          <span>Verificando coerência com grant e proposta</span>
+        </div>
+        <div class="etapa-item" id="ep3">
+          <span class="etapa-icone">🎯</span>
+          <span>Avaliando alinhamento com a Estratégia iCS 2026–2030</span>
+        </div>
+        <div class="etapa-item" id="ep4">
+          <span class="etapa-icone">📊</span>
+          <span>Calculando score e gerando recomendações</span>
+        </div>
+      </div>
+
+      <div class="barra-wrap"><div class="barra" id="barra" style="width:0%"></div></div>
+      <div style="font-size:0.78rem;color:var(--texto-suave);margin-top:8px;text-align:right" id="barraTexto">0%</div>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="resultados-wrap">
+    <div class="card" style="margin-top:20px">
+      <h2>Resultado da análise</h2>
+      <p class="subtitulo" id="resultadoData"></p>
+
+      <div class="score-box">
+        <div class="score-num" id="scoreNum">—</div>
+        <div class="score-label">Score de alinhamento estratégico (0–100)</div>
+        <div class="score-classificacao" id="scoreClass"></div>
+      </div>
+
+      <strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--texto-suave)">Recomendação estratégica</strong>
+      <div class="recomendacao" id="recomendacaoTexto" style="margin-top:8px"></div>
+
+      <h3 class="secao">Pontos de melhoria por capítulo</h3>
+
+      <div class="filtros">
+        <button class="filtro-btn ativo" onclick="filtrarPontos('todos', this)">Todos</button>
+        <button class="filtro-btn" onclick="filtrarPontos('alto', this)">🔴 Alta prioridade</button>
+        <button class="filtro-btn" onclick="filtrarPontos('medio', this)">🟡 Média prioridade</button>
+        <button class="filtro-btn" onclick="filtrarPontos('baixo', this)">🟢 Baixa prioridade</button>
+      </div>
+
+      <div id="listaPontos"></div>
+
+      <div class="acoes-finais">
+        <button class="btn-exportar" onclick="exportarTxt()">⬇ Exportar .txt</button>
+        <button class="btn-nova" onclick="novaAnalise()">↩ Nova análise</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+// Estado global
+// ──────────────────────────────────────────────
+const estado = {
+  relatorio: '',
+  grant: '',
+  proposta: '',
+  resultado: null,
+};
+
+// ──────────────────────────────────────────────
+// API Key
+// ──────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const chave = localStorage.getItem('ics_api_key');
+  if (chave) {
+    document.getElementById('apiKey').value = chave;
+    atualizarStatusApi(true);
+  }
+});
+
+function salvarChave() {
+  const v = document.getElementById('apiKey').value.trim();
+  if (!v) return;
+  localStorage.setItem('ics_api_key', v);
+  atualizarStatusApi(true);
+}
+
+function atualizarStatusApi(ok) {
+  const el = document.getElementById('apiStatus');
+  if (ok) { el.textContent = '✓ Salva'; el.className = 'api-status ok'; }
+  else { el.textContent = '—'; el.className = 'api-status vazio'; }
+}
+
+// ──────────────────────────────────────────────
+// Upload / Drag
+// ──────────────────────────────────────────────
+function dragOver(e, zoneId) { e.preventDefault(); document.getElementById(zoneId).classList.add('drag'); }
+function dragLeave(zoneId) { document.getElementById(zoneId).classList.remove('drag'); }
+
+function dropArquivo(e, tipo) {
+  e.preventDefault();
+  const mapa = { relatorio: 'zoneRelatorio', grant: 'zoneGrant', proposta: 'zoneProposta' };
+  document.getElementById(mapa[tipo]).classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) processarArquivo(tipo, file);
+}
+
+function carregarArquivo(tipo, input) {
+  const file = input.files[0];
+  if (file) processarArquivo(tipo, file);
+}
+
+function processarArquivo(tipo, file) {
+  const mapa = {
+    relatorio: { zone: 'zoneRelatorio', textarea: 'textoRelatorio' },
+    grant:     { zone: 'zoneGrant',     textarea: 'textoGrant'     },
+    proposta:  { zone: 'zoneProposta',  textarea: 'textoProposta'  },
+  };
+  const { zone, textarea } = mapa[tipo];
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  const zoneEl = document.getElementById(zone);
+  zoneEl.querySelector('.label').innerHTML = `<strong>${file.name}</strong> — carregando…`;
+
+  if (ext === 'docx' || ext === 'doc') {
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const result = await mammoth.extractRawText({ arrayBuffer: ev.target.result });
+        const texto = result.value;
+        estado[tipo] = texto;
+        document.getElementById(textarea).value = texto;
+        marcarZoneOk(zone, file.name, texto.length);
+        if (tipo === 'relatorio') verificarEtapa1();
+      } catch (err) {
+        zoneEl.querySelector('.label').innerHTML = `<strong style="color:var(--alto)">Erro ao ler o arquivo</strong>`;
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else if (ext === 'txt') {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const texto = ev.target.result;
+      estado[tipo] = texto;
+      document.getElementById(textarea).value = texto;
+      marcarZoneOk(zone, file.name, texto.length);
+      if (tipo === 'relatorio') verificarEtapa1();
+    };
+    reader.readAsText(file);
+  } else if (ext === 'pdf') {
+    // PDF: instrui o usuário a colar o texto
+    zoneEl.querySelector('.label').innerHTML = `<strong>PDF detectado:</strong> copie e cole o texto no campo abaixo`;
+    zoneEl.classList.remove('carregado');
+  } else {
+    zoneEl.querySelector('.label').innerHTML = `<strong style="color:var(--alto)">Formato não suportado</strong>`;
+  }
+}
+
+function marcarZoneOk(zoneId, nome, chars) {
+  const zone = document.getElementById(zoneId);
+  zone.classList.add('carregado');
+  zone.querySelector('.label').innerHTML = `✓ <strong>${nome}</strong> (${Math.round(chars/1000)}k caracteres)`;
+}
+
+function verificarEtapa1() {
+  const texto = document.getElementById('textoRelatorio').value.trim();
+  estado.relatorio = texto;
+}
+
+// ──────────────────────────────────────────────
+// Sincronizar textareas → estado
+// ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('textoRelatorio').addEventListener('input', e => { estado.relatorio = e.target.value; });
+  document.getElementById('textoGrant').addEventListener('input', e => { estado.grant = e.target.value; });
+  document.getElementById('textoProposta').addEventListener('input', e => { estado.proposta = e.target.value; });
+});
+
+// ──────────────────────────────────────────────
+// Indicador de etapas (topo)
+// ──────────────────────────────────────────────
+function setEtapaAtiva(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('si' + i);
+    el.className = 'step-item ' + (i < n ? 'concluido' : i === n ? 'ativo' : '');
+  }
+}
+
+// ──────────────────────────────────────────────
+// Progresso
+// ──────────────────────────────────────────────
+let progressoInterval = null;
+
+function avancarEtapaProgresso(n, pct) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('ep' + i);
+    if (i < n) {
+      el.className = 'etapa-item feito';
+      el.querySelector('.etapa-icone').textContent = '✓';
+    } else if (i === n) {
+      el.className = 'etapa-item andando';
+    } else {
+      el.className = 'etapa-item';
+    }
+  }
+  document.getElementById('barra').style.width = pct + '%';
+  document.getElementById('barraTexto').textContent = pct + '%';
+}
+
+// ──────────────────────────────────────────────
+// Análise principal
+// ──────────────────────────────────────────────
+async function iniciarAnalise() {
+  // Sync textareas
+  estado.relatorio = document.getElementById('textoRelatorio').value.trim();
+  estado.grant     = document.getElementById('textoGrant').value.trim();
+  estado.proposta  = document.getElementById('textoProposta').value.trim();
+
+  const erroGeral = document.getElementById('erroGeral');
+  erroGeral.style.display = 'none';
+
+  if (!estado.relatorio) {
+    document.getElementById('erroGeral').textContent = 'Por favor, forneça o relatório principal (arquivo ou texto colado).';
+    document.getElementById('erroGeral').style.display = 'block';
+    return;
+  }
+
+  const apiKey = localStorage.getItem('ics_api_key') || document.getElementById('apiKey').value.trim();
+  if (!apiKey) {
+    erroGeral.textContent = 'Insira e salve sua chave de API Anthropic antes de continuar.';
+    erroGeral.style.display = 'block';
+    return;
+  }
+
+  // UI: esconder botão, mostrar progresso
+  document.getElementById('btnAnalisar').disabled = true;
+  document.getElementById('progresso-wrap').style.display = 'block';
+  document.getElementById('resultados-wrap').style.display = 'none';
+  setEtapaAtiva(3);
+
+  // Simular etapas de progresso durante a chamada à API
+  avancarEtapaProgresso(1, 5);
+  await sleep(600);
+  avancarEtapaProgresso(2, 20);
+  await sleep(800);
+  avancarEtapaProgresso(3, 40);
+
+  try {
+    const resultado = await chamarClaude(apiKey);
+    avancarEtapaProgresso(4, 85);
+    await sleep(700);
+    avancarEtapaProgresso(4, 100);
+    // marcar todas como feitas
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById('ep' + i);
+      el.className = 'etapa-item feito';
+      el.querySelector('.etapa-icone').textContent = '✓';
+    }
+    await sleep(400);
+    mostrarResultados(resultado);
+  } catch (err) {
+    document.getElementById('progresso-wrap').style.display = 'none';
+    document.getElementById('btnAnalisar').disabled = false;
+    erroGeral.textContent = 'Erro ao consultar a API: ' + err.message;
+    erroGeral.style.display = 'block';
+    setEtapaAtiva(1);
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ──────────────────────────────────────────────
+// Chamada à API Claude
+// ──────────────────────────────────────────────
+async function chamarClaude(apiKey) {
+  const relTrunc = truncar(estado.relatorio, 40000);
+  const grantTrunc = truncar(estado.grant, 15000);
+  const propostaTrunc = truncar(estado.proposta, 15000);
+
+  const prompt = construirPrompt(relTrunc, grantTrunc, propostaTrunc);
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  const texto = data.content[0].text;
+  return parsearResposta(texto);
+}
+
+function truncar(texto, maxChars) {
+  if (!texto) return '(não fornecido)';
+  if (texto.length <= maxChars) return texto;
+  return texto.slice(0, maxChars) + '\n\n[… texto truncado para caber no limite de contexto …]';
+}
+
+// ──────────────────────────────────────────────
+// Prompt para o Claude
+// ──────────────────────────────────────────────
+function construirPrompt(relatorio, grant, proposta) {
+  return `Você é um analista sênior do Instituto Clima e Sociedade (iCS), especializado em avaliação de relatórios de parceiros e grantees. Sua função é revisar relatórios com rigor técnico e olhar estratégico, verificando coerência interna e alinhamento com a missão do iCS.
+
+## CONTEXTO DA ESTRATÉGIA iCS 2026–2030
+A Estratégia Programática do iCS 2026–2030 está disponível em: https://climaesociedade.org/wp-content/uploads/2025/12/EstrategiaProgramatica_PT-REV.pdf
+
+Pontos centrais da estratégia (use como referência):
+- Missão: acelerar a transição para uma economia de baixo carbono e justa no Brasil
+- Foco em três eixos: Energia, Florestas e Agropecuária
+- Abordagem sistêmica: conectar ações locais a mudanças estruturais de políticas e mercados
+- Relatoria estratégica: parceiros devem demonstrar não apenas entregas (outputs) mas resultados sistêmicos (outcomes) e contribuição para mudança de narrativa
+- Linguagem esperada: orientada a resultados, com evidências, conectando ações a transformações sistêmicas
+- Valoriza: coalizões, incidência em políticas públicas, comunicação estratégica, inovação
+
+## DOCUMENTOS FORNECIDOS
+
+### RELATÓRIO PRINCIPAL A REVISAR:
+${relatorio}
+
+### GRANT / CONTRATO ASSINADO:
+${grant}
+
+### PROPOSTA APROVADA:
+${proposta}
+
+## TAREFA
+Analise o relatório principal em relação aos documentos de referência e à estratégia do iCS. Retorne **exclusivamente** um JSON válido com a estrutura abaixo — sem texto antes ou depois, sem markdown, sem blocos de código:
+
+{
+  "score": <número inteiro de 0 a 100>,
+  "classificacao": "<Excelente|Muito bom|Bom|Regular|Precisa de reformulação>",
+  "recomendacao": "<parágrafo de 3 a 5 frases com recomendação estratégica geral para o parceiro melhorar o relatório>",
+  "pontos": [
+    {
+      "prioridade": "<alto|medio|baixo>",
+      "capitulo": "<nome ou número do capítulo/seção do relatório>",
+      "descricao": "<descrição clara e acionável do ponto de melhoria, com exemplo do texto original quando relevante>"
+    }
+  ]
+}
+
+Critérios para o score:
+- 85–100: alinhamento excelente com estratégia, grant e proposta; linguagem de resultados sistêmicos; evidências sólidas
+- 70–84: bom alinhamento, algumas lacunas de linguagem ou evidência
+- 55–69: alinhamento parcial, falta de conexão entre ações e resultados sistêmicos
+- 40–54: alinhamento insuficiente, relatório desconectado dos compromissos assumidos
+- 0–39: reformulação necessária
+
+Gere entre 5 e 15 pontos de melhoria. Prioridade alta = impacto direto no alinhamento estratégico; média = importante mas não crítico; baixa = sugestão de qualidade.
+
+Responda apenas com o JSON.`;
+}
+
+// ──────────────────────────────────────────────
+// Parsear resposta JSON do Claude
+// ──────────────────────────────────────────────
+function parsearResposta(texto) {
+  // Remover possíveis blocos de código markdown
+  let limpo = texto.trim();
+  limpo = limpo.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '');
+
+  try {
+    return JSON.parse(limpo);
+  } catch (e) {
+    // Tentar encontrar JSON dentro do texto
+    const match = limpo.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    throw new Error('Resposta da API não pôde ser interpretada. Tente novamente.');
+  }
+}
+
+// ──────────────────────────────────────────────
+// Mostrar resultados
+// ──────────────────────────────────────────────
+let resultadoAtual = null;
+
+function mostrarResultados(dados) {
+  resultadoAtual = dados;
+  document.getElementById('progresso-wrap').style.display = 'none';
+  document.getElementById('resultados-wrap').style.display = 'block';
+  setEtapaAtiva(4);
+
+  document.getElementById('scoreNum').textContent = dados.score;
+  document.getElementById('scoreClass').textContent = dados.classificacao || '';
+  document.getElementById('recomendacaoTexto').innerHTML = '<strong>Recomendação geral</strong>' + escapeHtml(dados.recomendacao || '');
+
+  const agora = new Date();
+  document.getElementById('resultadoData').textContent = `Análise gerada em ${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}`;
+
+  renderizarPontos(dados.pontos || [], 'todos');
+
+  document.getElementById('resultados-wrap').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderizarPontos(pontos, filtro) {
+  const lista = document.getElementById('listaPontos');
+  lista.innerHTML = '';
+  const filtrados = filtro === 'todos' ? pontos : pontos.filter(p => p.prioridade === filtro);
+
+  if (filtrados.length === 0) {
+    lista.innerHTML = '<p style="color:var(--texto-suave);font-size:0.88rem;padding:12px 0">Nenhum ponto nesta categoria.</p>';
+    return;
+  }
+
+  filtrados.forEach(p => {
+    const div = document.createElement('div');
+    div.className = `ponto ${p.prioridade}`;
+    const badge = p.prioridade === 'alto' ? '🔴 Alta' : p.prioridade === 'medio' ? '🟡 Média' : '🟢 Baixa';
+    div.innerHTML = `
+      <span class="ponto-badge">${badge}</span>
+      <div>
+        <div class="ponto-texto">${escapeHtml(p.descricao)}</div>
+        <div class="ponto-capitulo">${escapeHtml(p.capitulo)}</div>
+      </div>
+    `;
+    lista.appendChild(div);
+  });
+}
+
+function filtrarPontos(filtro, btn) {
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo'));
+  btn.classList.add('ativo');
+  if (resultadoAtual) renderizarPontos(resultadoAtual.pontos || [], filtro);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ──────────────────────────────────────────────
+// Exportar .txt
+// ──────────────────────────────────────────────
+function exportarTxt() {
+  if (!resultadoAtual) return;
+  const d = resultadoAtual;
+  const agora = new Date();
+  let txt = `REVISÃO DE RELATÓRIO — Instituto Clima e Sociedade (iCS)
+Gerado em: ${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR')}
+${'='.repeat(60)}
+
+SCORE DE ALINHAMENTO ESTRATÉGICO: ${d.score}/100 — ${d.classificacao}
+
+${'─'.repeat(60)}
+RECOMENDAÇÃO ESTRATÉGICA
+${'─'.repeat(60)}
+${d.recomendacao}
+
+${'─'.repeat(60)}
+PONTOS DE MELHORIA POR CAPÍTULO
+${'─'.repeat(60)}
+
+`;
+
+  const ordem = ['alto', 'medio', 'baixo'];
+  const labels = { alto: '🔴 ALTA PRIORIDADE', medio: '🟡 MÉDIA PRIORIDADE', baixo: '🟢 BAIXA PRIORIDADE' };
+
+  ordem.forEach(prio => {
+    const lista = (d.pontos || []).filter(p => p.prioridade === prio);
+    if (lista.length === 0) return;
+    txt += `\n${labels[prio]}\n${'─'.repeat(40)}\n`;
+    lista.forEach((p, i) => {
+      txt += `\n${i + 1}. [${p.capitulo}]\n${p.descricao}\n`;
+    });
+  });
+
+  txt += `\n${'='.repeat(60)}\nAnálise realizada via Revisor de Relatórios iCS powered by Claude (Anthropic)\n`;
+
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `revisao-ics-${agora.toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ──────────────────────────────────────────────
+// Nova análise
+// ──────────────────────────────────────────────
+function novaAnalise() {
+  // Reset estado
+  estado.relatorio = '';
+  estado.grant = '';
+  estado.proposta = '';
+  resultadoAtual = null;
+
+  // Reset UI
+  document.getElementById('textoRelatorio').value = '';
+  document.getElementById('textoGrant').value = '';
+  document.getElementById('textoProposta').value = '';
+
+  ['zoneRelatorio','zoneGrant','zoneProposta'].forEach(id => {
+    const z = document.getElementById(id);
+    z.classList.remove('carregado','drag');
+  });
+
+  document.getElementById('zoneRelatorio').querySelector('.label').innerHTML = '<strong>Clique para selecionar</strong> ou arraste o arquivo aqui';
+  document.getElementById('zoneGrant').querySelector('.label').innerHTML = '<strong>Selecionar arquivo</strong>';
+  document.getElementById('zoneProposta').querySelector('.label').innerHTML = '<strong>Selecionar arquivo</strong>';
+
+  document.getElementById('progresso-wrap').style.display = 'none';
+  document.getElementById('resultados-wrap').style.display = 'none';
+  document.getElementById('erroGeral').style.display = 'none';
+  document.getElementById('btnAnalisar').disabled = false;
+
+  setEtapaAtiva(1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
