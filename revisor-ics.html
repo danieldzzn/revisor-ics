@@ -130,19 +130,38 @@
   .prior-item { display: flex; flex-direction: column; gap: 6px; }
   .prior-label { font-size: 0.82rem; font-weight: 700; color: var(--texto); }
 
+  /* Abas de prioridade nos resultados */
+  .prioridade-tabs { display: flex; gap: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--cinza-borda); margin-bottom: 20px; box-shadow: var(--sombra); }
+  .prio-tab-btn { flex: 1; padding: 14px 10px; border: none; background: white; font-size: 0.82rem; font-weight: 700; cursor: pointer; border-right: 1px solid var(--cinza-borda); transition: all 0.2s; color: var(--texto-suave); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .prio-tab-btn:last-child { border-right: none; }
+  .prio-tab-btn .prio-count { font-size: 1.3rem; font-weight: 900; line-height: 1; }
+  .prio-tab-btn.ativo-alto { background: var(--alto); color: white; }
+  .prio-tab-btn.ativo-medio { background: var(--medio); color: white; }
+  .prio-tab-btn.ativo-baixo { background: var(--baixo); color: white; }
+
   /* Cards de resultado por parágrafo */
-  .ponto-card { border-radius: 10px; margin-bottom: 16px; overflow: hidden; border: 1px solid var(--cinza-borda); box-shadow: 0 1px 6px rgba(0,0,0,0.05); }
-  .ponto-card-header { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 0.78rem; font-weight: 700; }
+  .ponto-card { border-radius: 10px; margin-bottom: 20px; overflow: hidden; border: 1px solid var(--cinza-borda); box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .ponto-card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; font-size: 0.8rem; font-weight: 700; }
   .ponto-card.alto .ponto-card-header { background: var(--alto); color: white; }
   .ponto-card.medio .ponto-card-header { background: var(--medio); color: white; }
   .ponto-card.baixo .ponto-card-header { background: var(--baixo); color: white; }
+  .tipo-ajuste-badge { background: rgba(255,255,255,0.25); padding: 3px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.3px; }
   .ponto-card-body { background: white; }
-  .ponto-secao { padding: 12px 16px; border-bottom: 1px solid var(--cinza-borda); }
+  .ponto-secao { padding: 14px 18px; border-bottom: 1px solid var(--cinza-borda); }
   .ponto-secao:last-child { border-bottom: none; }
-  .ponto-secao-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; color: var(--texto-suave); margin-bottom: 5px; }
-  .ponto-paragrafo { font-size: 0.83rem; line-height: 1.55; color: var(--texto); background: var(--cinza); border-left: 3px solid var(--cinza-borda); padding: 8px 12px; border-radius: 0 6px 6px 0; font-style: italic; }
-  .ponto-atencao { font-size: 0.85rem; line-height: 1.55; color: var(--texto); }
-  .ponto-sugestao { font-size: 0.85rem; line-height: 1.55; color: var(--texto); background: var(--verde-claro); border-left: 3px solid var(--verde); padding: 8px 12px; border-radius: 0 6px 6px 0; }
+  .ponto-secao-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.7px; font-weight: 700; color: var(--texto-suave); margin-bottom: 8px; }
+  .ponto-bloco {
+    font-size: 0.84rem; line-height: 1.6; color: var(--texto);
+    background: #fffbf0;
+    border: 1px solid #f0d080;
+    border-left: 4px solid #e6b800;
+    padding: 12px 14px; border-radius: 0 8px 8px 0;
+    font-style: italic;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .ponto-atencao { font-size: 0.86rem; line-height: 1.6; color: var(--texto); }
+  .ponto-sugestao { font-size: 0.86rem; line-height: 1.6; color: var(--texto); background: var(--verde-claro); border-left: 4px solid var(--verde); padding: 12px 14px; border-radius: 0 8px 8px 0; }
 
   .dimensao-bar { margin-bottom: 12px; }
   .dimensao-label { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px; }
@@ -414,13 +433,23 @@
       <strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--texto-suave)">Recomendação estratégica</strong>
       <div class="recomendacao" id="recomendacaoTexto" style="margin-top:8px"></div>
 
-      <h3 class="secao">Pontos de melhoria identificados</h3>
-      <div class="filtros">
-        <button class="filtro-btn ativo" onclick="filtrarPontos('todos',this)">Todos</button>
-        <button class="filtro-btn" onclick="filtrarPontos('alto',this)">🔴 Alta prioridade</button>
-        <button class="filtro-btn" onclick="filtrarPontos('medio',this)">🟡 Média prioridade</button>
-        <button class="filtro-btn" onclick="filtrarPontos('baixo',this)">🟢 Baixa prioridade</button>
+      <h3 class="secao">Blocos do relatório que precisam de ajuste</h3>
+
+      <div class="prioridade-tabs">
+        <button class="prio-tab-btn ativo-alto" id="tabAlto" onclick="filtrarPontos('alto',this)">
+          <span class="prio-count" id="cntAlto">—</span>
+          🔴 Alta prioridade
+        </button>
+        <button class="prio-tab-btn" id="tabMedio" onclick="filtrarPontos('medio',this)">
+          <span class="prio-count" id="cntMedio">—</span>
+          🟡 Média prioridade
+        </button>
+        <button class="prio-tab-btn" id="tabBaixo" onclick="filtrarPontos('baixo',this)">
+          <span class="prio-count" id="cntBaixo">—</span>
+          🟢 Baixa prioridade
+        </button>
       </div>
+
       <div id="listaPontos"></div>
 
       <div class="acoes-finais">
@@ -653,27 +682,27 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
 
   if (pctKw < 40) {
     pontos.push({
-      prioridade: 'alto',
+      prioridade: 'alto', tipoAjuste: 'Reescrever linguagem',
       capitulo: 'Linguagem e enquadramento estratégico',
       paragrafo: encontrarParagrafo(paragrafos, ['resultado','impacto','ação','atividade']),
-      descricao: `O relatório usa poucos termos da linguagem estratégica do iCS — apenas ${kwEncontradas.length} de 30+ esperados. O trecho acima é representativo do padrão de linguagem atual, que descreve ações sem enquadrá-las no vocabulário programático do iCS.`,
-      sugestao: `Revise os parágrafos de resultados incorporando termos como "mudança sistêmica", "incidência em política pública", "narrativa climática", "transição justa", "outcomes" e os eixos temáticos (Energia, Florestas, Agropecuária). Exemplo de reformulação: em vez de "realizamos oficinas com agricultores", escreva "contribuímos para fortalecer a capacidade de agricultores familiares de se posicionarem na agenda de agropecuária sustentável, com impacto direto na narrativa local sobre uso da terra".`
+      descricao: `O relatório usa poucos termos da linguagem estratégica do iCS — apenas ${kwEncontradas.length} de 30+ esperados. O bloco acima é representativo: descreve ações sem enquadrá-las no vocabulário programático do iCS.`,
+      sugestao: `Reescreva os parágrafos de resultado incorporando: "mudança sistêmica", "incidência em política pública", "narrativa climática", "transição justa", "outcomes" e os eixos temáticos. Exemplo: em vez de "realizamos oficinas com agricultores" → "contribuímos para fortalecer a capacidade de agricultores familiares de se posicionarem na agenda de agropecuária sustentável, com impacto direto na narrativa local sobre uso da terra".`
     });
   } else if (pctKw < 70) {
     pontos.push({
-      prioridade: 'medio',
+      prioridade: 'medio', tipoAjuste: 'Enriquecer vocabulário',
       capitulo: 'Linguagem estratégica',
       paragrafo: encontrarParagrafo(paragrafos, kwEncontradas.slice(0,3)),
-      descricao: `A linguagem estratégica do iCS está parcialmente presente (${kwEncontradas.length} termos encontrados). O trecho acima mostra onde esses termos aparecem, mas eles ainda estão isolados — não conectados a resultados sistêmicos.`,
-      sugestao: `Certifique-se de que cada termo estratégico está ancorado em um resultado concreto. Não basta mencionar "incidência" — descreva qual política foi influenciada, por qual ator, com qual resultado. Adicione ao menos 5 novos termos estratégicos nas seções de resultados e conclusão.`
+      descricao: `A linguagem estratégica do iCS está parcialmente presente (${kwEncontradas.length} termos). O bloco acima mostra onde esses termos aparecem, mas isolados — não conectados a resultados sistêmicos.`,
+      sugestao: `Ancore cada termo estratégico em um resultado concreto. Não basta mencionar "incidência" — descreva qual política foi influenciada, por qual ator, com qual resultado. Acrescente ao menos 5 termos estratégicos nas seções de resultados e conclusão.`
     });
   } else {
     pontos.push({
-      prioridade: 'baixo',
+      prioridade: 'baixo', tipoAjuste: 'Aprimorar conexão',
       capitulo: 'Linguagem estratégica',
       paragrafo: encontrarParagrafo(paragrafos, kwEncontradas.slice(0,3)),
-      descricao: `Boa presença da linguagem estratégica do iCS (${kwEncontradas.length} termos encontrados). O trecho acima ilustra um dos pontos bem escritos do relatório.`,
-      sugestao: `Para elevar ainda mais a qualidade, verifique se todos os termos estratégicos estão conectados a evidências mensuráveis. Considere adicionar uma seção de "contribuição para mudança sistêmica" que sintetize explicitamente o impacto do projeto além das atividades.`
+      descricao: `Boa presença da linguagem estratégica do iCS (${kwEncontradas.length} termos). O bloco acima ilustra um trecho bem escrito.`,
+      sugestao: `Verifique se todos os termos estratégicos estão conectados a evidências mensuráveis. Adicione uma seção de "contribuição para mudança sistêmica" que sintetize explicitamente o impacto além das atividades.`
     });
   }
 
@@ -687,19 +716,19 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
   if (pctResultados < 35) {
     const pAtiv = encontrarParagrafo(paragrafos, ['realizamos','fizemos','executamos','desenvolvemos','organizamos','participamos']);
     pontos.push({
-      prioridade: 'alto',
-      capitulo: 'Seção de Resultados — linguagem de atividades',
+      prioridade: 'alto', tipoAjuste: 'Reescrever — atividade → resultado',
+      capitulo: 'Seção de Resultados — foco em atividades',
       paragrafo: pAtiv,
-      descricao: `O trecho acima é um exemplo típico do padrão predominante no relatório: descrição de atividades realizadas sem conexão com os resultados ou mudanças geradas. O iCS espera relatoria de outcomes (resultados sistêmicos), não apenas de outputs (entregas).`,
-      sugestao: `Para cada atividade descrita, acrescente imediatamente uma frase de resultado: o que mudou, em quem, com qual intensidade. Modelo: "[Atividade realizada] → o que gerou [resultado concreto] → contribuindo para [mudança sistêmica no eixo X]". Substitua verbos como "realizamos", "fizemos", "participamos" por "contribuímos para", "influenciou", "resultou em", "gerou mudança em".`
+      descricao: `O bloco acima descreve atividades sem conectá-las a resultados ou mudanças geradas. O iCS espera relatoria de outcomes (resultados sistêmicos), não apenas outputs (entregas).`,
+      sugestao: `Para cada atividade, acrescente uma frase de resultado logo após. Modelo: "[Atividade] → gerou [resultado concreto] → contribuindo para [mudança sistêmica no eixo X]". Substitua "realizamos", "fizemos", "participamos" por "contribuímos para", "influenciou", "resultou em".`
     });
   } else if (pctResultados < 60) {
     pontos.push({
-      prioridade: 'medio',
+      prioridade: 'medio', tipoAjuste: 'Complementar com impacto',
       capitulo: 'Seção de Resultados',
       paragrafo: encontrarParagrafo(paragrafos, ['resultado','impacto','contribuiu']),
-      descricao: `O equilíbrio entre atividades e resultados pode melhorar. O trecho acima mostra uma tentativa de descrever resultados, mas ainda falta conexão explícita com mudanças sistêmicas.`,
-      sugestao: `Para cada atividade ainda descrita sem resultado, adicione uma frase de impacto. Use a estrutura: "Esta ação contribuiu para [X] porque [Y], o que fortalece [objetivo estratégico Z]". Revise especialmente as seções intermediárias do relatório onde o padrão de atividades tende a predominar.`
+      descricao: `O bloco acima tenta descrever resultados, mas falta conexão explícita com mudanças sistêmicas. O equilíbrio entre atividades e outcomes pode melhorar.`,
+      sugestao: `Para cada atividade sem resultado explícito, adicione: "Esta ação contribuiu para [X] porque [Y], fortalecendo [objetivo estratégico Z]". Revise especialmente as seções intermediárias do relatório.`
     });
   }
 
@@ -711,7 +740,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
   const temNumeros = /\d+\s*(%|pessoas|organizações|organizacoes|municípios|municipios|hectares|toneladas|reuniões|reunioes|eventos|publicações|publicacoes|parceiros|stakeholders)/.test(rel);
   if (!temNumeros || pctEvidencias < 30) {
     pontos.push({
-      prioridade: 'alto',
+      prioridade: 'alto', tipoAjuste: 'Acrescentar dados quantitativos',
       capitulo: 'Evidências e mensuração de impacto',
       paragrafo: encontrarParagrafo(paragrafos, ['resultado','alcançamos','alcancamos','impacto','pessoas','municípios']),
       descricao: `O trecho acima descreve resultados sem apoio em dados quantitativos. O relatório carece de números que tornem o impacto verificável e comparável às metas do grant.`,
@@ -719,7 +748,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
     });
   } else if (pctEvidencias < 60) {
     pontos.push({
-      prioridade: 'medio',
+      prioridade: 'medio', tipoAjuste: 'Expandir indicadores',
       capitulo: 'Evidências e mensuração',
       paragrafo: encontrarParagrafo(paragrafos, ['dados','pesquisa','número','percentual']),
       descricao: `Alguns dados estão presentes, mas de forma insuficiente para sustentar os resultados relatados. O trecho acima ilustra um ponto onde dados adicionais fortaleceriam a argumentação.`,
@@ -735,7 +764,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
   if (pctEstrutura < 50) {
     const faltando = ESTRATEGIA_ICS.estruturaRelatorio.filter(s => !textoContemTermo(rel, s)).slice(0,4);
     pontos.push({
-      prioridade: 'medio',
+      prioridade: 'medio', tipoAjuste: 'Reorganizar estrutura',
       capitulo: 'Estrutura e organização do documento',
       paragrafo: paragrafos[0] || null,
       descricao: `O relatório não apresenta seções claramente identificadas com títulos. Seções ausentes ou pouco visíveis: ${faltando.join(', ')}. Isso dificulta a revisão pelo iCS e a localização de informações específicas.`,
@@ -751,7 +780,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
 
   if (!temEixo) {
     pontos.push({
-      prioridade: 'alto',
+      prioridade: 'alto', tipoAjuste: 'Inserir bloco de contexto estratégico',
       capitulo: 'Alinhamento com eixos temáticos do iCS',
       paragrafo: paragrafos[0] || null,
       descricao: `O relatório não menciona explicitamente nenhum dos eixos temáticos do iCS (Energia, Florestas, Agropecuária). O trecho inicial do relatório, acima, não situa o projeto no contexto estratégico do iCS.`,
@@ -770,7 +799,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
 
     if (pctCoerencia < 35) {
       pontos.push({
-        prioridade: 'alto',
+        prioridade: 'alto', tipoAjuste: 'Alinhar ao grant — reescrever seção de objetivos',
         capitulo: 'Coerência com grant e proposta aprovada',
         paragrafo: encontrarParagrafo(paragrafos, ['objetivo','meta','resultado','indicador']),
         descricao: `Baixo alinhamento entre o vocabulário e os temas do relatório e os documentos de referência (grant/proposta). O trecho acima mostra onde a desconexão é mais evidente — os objetivos originais não estão sendo reportados com clareza.`,
@@ -778,7 +807,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
       });
     } else if (pctCoerencia < 60) {
       pontos.push({
-        prioridade: 'medio',
+        prioridade: 'medio', tipoAjuste: 'Referenciar objetivos do grant',
         capitulo: 'Coerência com grant e proposta',
         paragrafo: encontrarParagrafo(paragrafos, ['objetivo','meta','indicador','resultado']),
         descricao: `Alinhamento parcial com os documentos de referência. O trecho acima é um exemplo onde a conexão com os objetivos aprovados poderia ser mais explícita.`,
@@ -786,7 +815,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
       });
     } else {
       pontos.push({
-        prioridade: 'baixo',
+        prioridade: 'baixo', tipoAjuste: 'Incluir tabela meta vs. realizado',
         capitulo: 'Coerência com grant e proposta',
         paragrafo: encontrarParagrafo(paragrafos, ['objetivo','meta','indicador']),
         descricao: `Boa coerência geral com os documentos de referência. O trecho acima mostra alinhamento com os temas da proposta aprovada.`,
@@ -795,7 +824,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
     }
   } else {
     pontos.push({
-      prioridade: 'medio',
+      prioridade: 'medio', tipoAjuste: 'Fornecer documentos de referência',
       capitulo: 'Documentos de referência ausentes',
       paragrafo: null,
       descricao: `Grant e proposta aprovada não foram fornecidos nesta análise. Sem esses documentos, não é possível verificar se os compromissos assumidos estão sendo reportados adequadamente.`,
@@ -807,7 +836,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
 
   if (!textoContemTermo(rel, 'narrativa') && !textoContemTermo(rel, 'enquadramento') && !textoContemTermo(rel, 'comunicação')) {
     pontos.push({
-      prioridade: 'medio',
+      prioridade: 'medio', tipoAjuste: 'Acrescentar parágrafo de narrativa',
       capitulo: 'Narrativa e comunicação estratégica',
       paragrafo: encontrarParagrafo(paragrafos, ['comunicação','mídia','imprensa','redes','publicação']),
       descricao: `O relatório não menciona mudança de narrativa ou comunicação estratégica. A Estratégia iCS valoriza a capacidade dos parceiros de influenciar como temas climáticos são discutidos publicamente.`,
@@ -817,7 +846,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
 
   if (!textoContemTermo(rel, 'política') && !textoContemTermo(rel, 'politica') && !textoContemTermo(rel, 'governo') && !textoContemTermo(rel, 'legislação') && !textoContemTermo(rel, 'legislacao') && !textoContemTermo(rel, 'regulação')) {
     pontos.push({
-      prioridade: 'medio',
+      prioridade: 'medio', tipoAjuste: 'Incluir seção de incidência política',
       capitulo: 'Incidência em políticas públicas',
       paragrafo: encontrarParagrafo(paragrafos, ['governo','estado','municipal','federal','secretaria','ministério']),
       descricao: `Não há menção a incidência em políticas públicas ou engajamento com atores governamentais, dimensão central na abordagem do iCS.`,
@@ -827,7 +856,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
 
   if (!textoContemTermo(rel, 'aprendizado') && !textoContemTermo(rel, 'desafio') && !textoContemTermo(rel, 'dificuldade') && !textoContemTermo(rel, 'lição')) {
     pontos.push({
-      prioridade: 'baixo',
+      prioridade: 'baixo', tipoAjuste: 'Acrescentar seção de aprendizados',
       capitulo: 'Aprendizados e desafios',
       paragrafo: paragrafos.length > 2 ? paragrafos[paragrafos.length - 2] : null,
       descricao: `O relatório não inclui seção de aprendizados ou desafios. O iCS valoriza a reflexão honesta sobre o que funcionou, o que não funcionou e por quê.`,
@@ -837,7 +866,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
 
   if (!textoContemTermo(rel, 'próximos passos') && !textoContemTermo(rel, 'proximos passos') && !textoContemTermo(rel, 'perspectivas') && !textoContemTermo(rel, 'próximo período')) {
     pontos.push({
-      prioridade: 'baixo',
+      prioridade: 'baixo', tipoAjuste: 'Acrescentar seção de próximos passos',
       capitulo: 'Próximos passos',
       paragrafo: paragrafos.length > 1 ? paragrafos[paragrafos.length - 1] : null,
       descricao: `O relatório não apresenta próximos passos ou perspectivas para o período seguinte. Isso deixa o financiador sem visão sobre a continuidade do trabalho.`,
@@ -847,7 +876,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
 
   if (!textoContemTermo(rel, 'parceiro') && !textoContemTermo(rel, 'coalizão') && !textoContemTermo(rel, 'coalizao') && !textoContemTermo(rel, 'rede') && !textoContemTermo(rel, 'aliança') && !textoContemTermo(rel, 'alianca')) {
     pontos.push({
-      prioridade: 'medio',
+      prioridade: 'medio', tipoAjuste: 'Incluir parágrafo de parcerias',
       capitulo: 'Coalizões e parcerias estratégicas',
       paragrafo: encontrarParagrafo(paragrafos, ['organização','instituição','entidade','setor','ator']),
       descricao: `O relatório não menciona parceiros, coalizões ou redes. A abordagem sistêmica do iCS é centrada em trabalho coletivo e articulação entre atores.`,
@@ -857,7 +886,7 @@ function analisarRelatorio(relatorio, grant, proposta, prioridades) {
 
   if (rel.length < 1500) {
     pontos.push({
-      prioridade: 'alto',
+      prioridade: 'alto', tipoAjuste: 'Expandir conteúdo — relatório muito curto',
       capitulo: 'Profundidade e extensão do relatório',
       paragrafo: paragrafos[0] || null,
       descricao: `O relatório é muito curto (menos de 1.500 caracteres). Um relatório de qualidade para o iCS deve ter profundidade analítica — não apenas listagem de atividades.`,
@@ -1032,36 +1061,51 @@ function mostrarResultados(dados) {
       </div>`;
   }
 
-  renderizarPontos(dados.pontos, 'todos');
+  // Iniciar na aba de alta prioridade
+  document.getElementById('tabAlto').className = 'prio-tab-btn ativo-alto';
+  document.getElementById('tabMedio').className = 'prio-tab-btn';
+  document.getElementById('tabBaixo').className = 'prio-tab-btn';
+  renderizarPontos(dados.pontos, 'alto');
   document.getElementById('resultados-wrap').scrollIntoView({ behavior:'smooth' });
 }
 
 function renderizarPontos(pontos, filtro) {
   const lista = document.getElementById('listaPontos');
   lista.innerHTML = '';
-  const f = filtro === 'todos' ? pontos : pontos.filter(p => p.prioridade === filtro);
-  if (!f.length) { lista.innerHTML = '<p style="color:var(--texto-suave);font-size:0.88rem;padding:12px 0">Nenhum ponto nesta categoria.</p>'; return; }
+
+  // Atualizar contadores nas abas
+  ['alto','medio','baixo'].forEach(p => {
+    const el = document.getElementById('cnt' + p.charAt(0).toUpperCase() + p.slice(1));
+    if (el) el.textContent = pontos.filter(x => x.prioridade === p).length;
+  });
+
+  const f = pontos.filter(p => p.prioridade === filtro);
+
+  if (!f.length) {
+    lista.innerHTML = `<div style="text-align:center;padding:32px 20px;color:var(--texto-suave);font-size:0.88rem">✓ Nenhum ponto de ${filtro === 'alto' ? 'alta' : filtro === 'medio' ? 'média' : 'baixa'} prioridade identificado.</div>`;
+    return;
+  }
+
   f.forEach((p, i) => {
     const div = document.createElement('div');
     div.className = `ponto-card ${p.prioridade}`;
-    const badge = p.prioridade === 'alto' ? '🔴 ALTA PRIORIDADE' : p.prioridade === 'medio' ? '🟡 MÉDIA PRIORIDADE' : '🟢 BAIXA PRIORIDADE';
     div.innerHTML = `
       <div class="ponto-card-header">
-        <span>${badge}</span>
-        <span style="opacity:0.85;font-weight:400">— ${escapeHtml(p.capitulo)}</span>
+        <span style="font-size:0.85rem">${escapeHtml(p.capitulo)}</span>
+        ${p.tipoAjuste ? `<span class="tipo-ajuste-badge">✏️ ${escapeHtml(p.tipoAjuste)}</span>` : ''}
       </div>
       <div class="ponto-card-body">
         ${p.paragrafo ? `
         <div class="ponto-secao">
-          <div class="ponto-secao-label">📌 Trecho selecionado do relatório</div>
-          <div class="ponto-paragrafo">"${escapeHtml(p.paragrafo)}"</div>
+          <div class="ponto-secao-label">📌 Bloco do relatório a ajustar</div>
+          <div class="ponto-bloco">${escapeHtml(p.paragrafo)}</div>
         </div>` : ''}
         <div class="ponto-secao">
-          <div class="ponto-secao-label">⚠️ Ponto de atenção</div>
+          <div class="ponto-secao-label">⚠️ Problema identificado</div>
           <div class="ponto-atencao">${escapeHtml(p.descricao)}</div>
         </div>
         <div class="ponto-secao">
-          <div class="ponto-secao-label">✏️ Sugestão de correção e alinhamento</div>
+          <div class="ponto-secao-label">✏️ Como ajustar — sugestão de correção</div>
           <div class="ponto-sugestao">${escapeHtml(p.sugestao)}</div>
         </div>
       </div>`;
@@ -1070,8 +1114,13 @@ function renderizarPontos(pontos, filtro) {
 }
 
 function filtrarPontos(filtro, btn) {
-  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo'));
-  btn.classList.add('ativo');
+  // Resetar todas as abas
+  document.getElementById('tabAlto').className = 'prio-tab-btn';
+  document.getElementById('tabMedio').className = 'prio-tab-btn';
+  document.getElementById('tabBaixo').className = 'prio-tab-btn';
+  // Ativar aba clicada
+  const classMap = { alto: 'ativo-alto', medio: 'ativo-medio', baixo: 'ativo-baixo' };
+  btn.className = `prio-tab-btn ${classMap[filtro]}`;
   if (resultadoAtual) renderizarPontos(resultadoAtual.pontos, filtro);
 }
 
