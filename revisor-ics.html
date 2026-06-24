@@ -452,8 +452,19 @@
 
       <div id="listaPontos"></div>
 
-      <div class="acoes-finais">
-        <button class="btn-exportar" onclick="exportarTxt()">⬇ Baixar .txt</button>
+      <!-- Box: baixar para ChatGPT -->
+      <div style="background:var(--cinza);border:1px solid var(--cinza-borda);border-radius:10px;padding:18px 20px;margin-top:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:0.85rem;font-weight:700;margin-bottom:4px">💬 Continuar ajustes com IA</div>
+          <div style="font-size:0.78rem;color:var(--texto-suave)">Baixe um arquivo com o relatório + todos os pontos de melhoria formatados como prompt. Cole no ChatGPT ou Claude.ai e peça orientação para reescrever cada bloco.</div>
+        </div>
+        <button class="btn-exportar" onclick="baixarPromptChat()" style="white-space:nowrap;background:var(--verde);color:white;border-color:var(--verde)">
+          ⬇ Baixar para conversa com IA
+        </button>
+      </div>
+
+      <div class="acoes-finais" style="margin-top:16px">
+        <button class="btn-exportar" onclick="exportarTxt()">⬇ Baixar relatório .txt</button>
         <button class="btn-exportar" style="margin-left:10px" onclick="salvarRelatorio()">💾 Salvar no histórico</button>
         <button class="btn-nova" onclick="novaAnalise()">↩ Nova análise</button>
       </div>
@@ -1122,6 +1133,72 @@ function filtrarPontos(filtro, btn) {
   const classMap = { alto: 'ativo-alto', medio: 'ativo-medio', baixo: 'ativo-baixo' };
   btn.className = `prio-tab-btn ${classMap[filtro]}`;
   if (resultadoAtual) renderizarPontos(resultadoAtual.pontos, filtro);
+}
+
+function baixarPromptChat() {
+  if (!resultadoAtual) return;
+  const d = resultadoAtual;
+  const nome = document.getElementById('nomeRelatorio').value.trim() || 'Relatório';
+  const agora = new Date();
+
+  let txt = `Você é um especialista em relatoria estratégica para financiadores do terceiro setor, com foco em clima e sustentabilidade. Vou compartilhar com você um relatório que foi analisado por uma ferramenta de revisão do Instituto Clima e Sociedade (iCS). A análise identificou pontos de melhoria que preciso resolver. Por favor, me ajude a reescrever os blocos indicados, um por vez, conforme eu for pedindo.
+
+════════════════════════════════════════════════
+RELATÓRIO: ${nome}
+DATA DA ANÁLISE: ${agora.toLocaleDateString('pt-BR')}
+SCORE DE ALINHAMENTO: ${d.score}/100 — ${d.classificacao}
+════════════════════════════════════════════════
+
+RECOMENDAÇÃO GERAL DA ANÁLISE:
+${d.recomendacao}
+
+════════════════════════════════════════════════
+TEXTO ORIGINAL DO RELATÓRIO:
+════════════════════════════════════════════════
+${estado.relatorio || '(texto do relatório não disponível — cole aqui o conteúdo original)'}
+
+════════════════════════════════════════════════
+PONTOS DE MELHORIA IDENTIFICADOS:
+════════════════════════════════════════════════
+`;
+
+  const ordem = ['alto','medio','baixo'];
+  const labels = { alto:'🔴 ALTA PRIORIDADE', medio:'🟡 MÉDIA PRIORIDADE', baixo:'🟢 BAIXA PRIORIDADE' };
+
+  ordem.forEach(prio => {
+    const pts = (d.pontos || []).filter(p => p.prioridade === prio);
+    if (!pts.length) return;
+    txt += `\n${labels[prio]}\n${'─'.repeat(50)}\n`;
+    pts.forEach((p, i) => {
+      txt += `\nPONTO ${i+1}: ${p.capitulo}\n`;
+      txt += `TIPO DE AJUSTE: ${p.tipoAjuste || '—'}\n`;
+      if (p.paragrafo) txt += `\nBLOCO A AJUSTAR:\n"${p.paragrafo}"\n`;
+      txt += `\nPROBLEMA:\n${p.descricao}\n`;
+      txt += `\nSUGESTÃO:\n${p.sugestao}\n`;
+      txt += `${'·'.repeat(40)}\n`;
+    });
+  });
+
+  txt += `
+════════════════════════════════════════════════
+COMO ME AJUDAR:
+════════════════════════════════════════════════
+Para cada ponto acima, vou pedir que você:
+1. Reescreva o bloco indicado com a linguagem corrigida
+2. Explique brevemente o que mudou e por quê
+3. Sugira uma versão alternativa se houver mais de uma abordagem possível
+
+Pode começar? Aguardo minha primeira pergunta.
+`;
+
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const nomeArq = nome.replace(/[^a-zA-Z0-9\s\-]/g,'').replace(/\s+/g,'-').slice(0,40);
+  a.download = `prompt-chatgpt-${nomeArq}-${agora.toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function escapeHtml(str) {
